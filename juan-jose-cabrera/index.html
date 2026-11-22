@@ -77,7 +77,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* the two doors */
 .doorway{position:absolute;inset:0;z-index:2;perspective:2200px;display:flex;cursor:pointer}
 .door{position:relative;width:50%;height:100%;overflow:hidden;will-change:transform;
-  transition:transform 2.6s cubic-bezier(.65,0,.25,1),filter 2.6s ease;
+  transition:transform 2.8s cubic-bezier(.6,0,.2,1);backface-visibility:hidden;
   background:
     linear-gradient(90deg,rgba(0,0,0,.28),transparent 7%,transparent 93%,rgba(0,0,0,.28)),
     repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,transparent 2px 9px,rgba(0,0,0,.06) 9px 10px,transparent 10px 23px),
@@ -88,7 +88,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .door.r{transform-origin:100% 50%}
 .cover.open .door.l{transform:rotateY(-104deg)}
 .cover.open .door.r{transform:rotateY(104deg)}
-.cover.open .door{filter:brightness(.6)}
+.door::before{content:"";position:absolute;inset:0;z-index:7;background:#021a10;opacity:0;pointer-events:none;transition:opacity 2.8s ease}
+.cover.open .door::before{opacity:.45}
 .door.l::after{content:"";position:absolute;top:0;bottom:0;right:0;width:2px;z-index:4;
   background:linear-gradient(transparent,#F6E27A 30%,#C9F7BF 70%,transparent);box-shadow:0 0 18px 5px rgba(190,255,170,.55);animation:seam 3s ease-in-out infinite}
 @keyframes seam{0%,100%{opacity:.35}50%{opacity:1}}
@@ -153,7 +154,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .cover.casting .medal{animation:medalCharge .5s ease-in-out infinite alternate}
 @keyframes medalCharge{from{filter:brightness(1.05) drop-shadow(0 0 6px rgba(246,226,122,.5))}to{filter:brightness(1.4) drop-shadow(0 0 22px rgba(246,226,122,.95))}}
 .cover-fairy{position:absolute;left:0;top:0;z-index:7;width:clamp(120px,19vmin,190px);opacity:0;pointer-events:none;will-change:transform;
-  filter:drop-shadow(0 0 18px rgba(200,255,180,.45))}
+}
 .cover-fairy svg{display:block;width:100%;height:auto;overflow:visible;transform-origin:50% 90%}
 .cover-fairy.cast svg{animation:castWand .7s cubic-bezier(.34,1.56,.64,1)}
 @keyframes castWand{0%{transform:rotate(0)}35%{transform:rotate(-14deg) translateY(-8px)}70%{transform:rotate(6deg)}100%{transform:rotate(0)}}
@@ -189,6 +190,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* original fairy illustration (farewell) */
 .flutL{transform-box:view-box;transform-origin:96px 112px;animation:flutter2 .9s ease-in-out infinite alternate}
 .flutL.b{animation-delay:-.1s}
+#fairyBack .flutL,#fairySide .flutL{animation:flutterFast .16s ease-in-out infinite alternate}
+#fairyBack .flutL.b,#fairySide .flutL.b{animation-delay:-.04s}
+@keyframes flutterFast{from{transform:rotate(5deg) scaleX(1)}to{transform:rotate(-8deg) scaleX(.7)}}
 @keyframes flutter2{from{transform:rotate(4deg) scaleX(1)}to{transform:rotate(-6deg) scaleX(.82)}}
 @keyframes fairyFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-16px) rotate(2deg)}}
 .bye-fairy{display:block;width:130px;height:auto;margin:0 auto 6px;overflow:visible;transform:scaleX(-1)}
@@ -1446,7 +1450,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
         <h3 id="rs-done-title">¡Gracias!</h3>
         <p id="rs-done-text"></p>
         <div class="btn-row" style="margin-top:22px">
-          <a class="btn solid" id="rs-wa" target="_blank" rel="noopener" href="https://wa.me/">
+          <a class="btn solid" id="rs-wa" target="_blank" rel="noopener" href="https://wa.me/573116450428">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>
             Enviar por WhatsApp</a>
           <button class="btn" type="button" id="rs-edit">Modificar respuesta</button>
@@ -1547,11 +1551,15 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
     }
     function linger(x,y){ if (reduce) return; sparks.push({ x: x + (Math.random()-.5)*10, y: y + (Math.random()-.5)*10, vx: (Math.random()-.5)*.25, vy: Math.random()*.12, g: .003, r: 1.6 + Math.random()*2.8, life: 190 + Math.random()*100, t: 0, col: golds[Math.floor(Math.random()*golds.length)], spin: Math.random() < .6, tw: Math.random()*6 }); kick(); }
     function trail(x,y){ if (reduce) return; sparks.push({ x, y, vx:(Math.random()-.5)*.8, vy: Math.random()*.6+.2, r: 1.5+Math.random()*2.2, life: 40, t: 0, col: golds[Math.floor(Math.random()*3)] }); kick(); }
-    function frame(){
+    let last = 0;
+    const MAX = innerWidth < 600 ? 220 : 340;
+    function cap(){ if (sparks.length > MAX) sparks.splice(0, sparks.length - MAX); }
+    function frame(now){
+      const dt = last ? Math.min(2.5, (now - last) / 16.667) : 1; last = now;
       cx.clearRect(0,0,w,h);
       if (ambient){
         petals.forEach((p,i)=>{
-          p.ph += p.sp; p.y += p.vy; p.x += Math.sin(p.ph)*.5; p.rot += p.vr;
+          p.ph += p.sp*dt; p.y += p.vy*dt; p.x += Math.sin(p.ph)*.5*dt; p.rot += p.vr*dt;
           if (p.y > h+20) petals[i] = petal(true);
           cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot); cx.scale(1,.55+.45*Math.abs(Math.sin(p.ph)));
           cx.beginPath(); cx.ellipse(0,0,p.r,p.r*.62,0,0,6.283);
@@ -1560,7 +1568,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
           cx.lineWidth = .6; cx.fill(); cx.stroke(); cx.restore();
         });
         twinkles.forEach((s,i)=>{
-          s.t++; const k = s.t/s.life; if (k >= 1){ twinkles[i] = twinkle(); return; }
+          s.t += dt; const k = s.t/s.life; if (k >= 1){ twinkles[i] = twinkle(); return; }
           const a = Math.sin(k*Math.PI);
           cx.save(); cx.globalAlpha = a*.55; const gr = cx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*5);
           gr.addColorStop(0,'rgba(255,247,190,1)'); gr.addColorStop(.35,'rgba(240,226,120,.5)'); gr.addColorStop(1,'rgba(160,220,110,0)');
@@ -1569,15 +1577,15 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
         });
       }
       for (let i=sparks.length-1;i>=0;i--){
-        const s = sparks[i]; s.t++; s.x += s.vx; s.y += s.vy; s.vx *= .985; s.vy = s.vy*.985 + (s.g || .09);
+        const s = sparks[i]; s.t += dt; s.x += s.vx*dt; s.y += s.vy*dt; const dmp = Math.pow(.985, dt); s.vx *= dmp; s.vy = s.vy*dmp + (s.g || .09)*dt;
         const k = s.t/s.life; if (k >= 1){ sparks.splice(i,1); continue; }
         const al = (1-k) * (s.tw !== undefined ? (.5 + .5*Math.sin(s.t*.22 + s.tw)) : 1);
         if (s.spin) star(s.x, s.y, s.r*(1-k*.5), al, s.col);
         else { cx.globalAlpha = al; cx.fillStyle = s.col; cx.beginPath(); cx.arc(s.x,s.y,s.r*.55*(1-k*.5),0,6.283); cx.fill(); cx.globalAlpha = 1; }
       }
-      if (ambient || sparks.length) requestAnimationFrame(frame); else running = false;
+      if (ambient || sparks.length) requestAnimationFrame(frame); else { running = false; last = 0; }
     }
-    function kick(){ if (!running){ running = true; requestAnimationFrame(frame); } }
+    function kick(){ cap(); if (!running){ running = true; last = 0; requestAnimationFrame(frame); } }
     function startAmbient(){
       if (reduce || ambient) return;
       const small = innerWidth < 600;
@@ -1718,7 +1726,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
       const u = easeIO(t), wx = p.x + fw*.3*p.s, wy = p.y - fh*.413*p.s;
       FX.trail(wx, wy);
       // across the top of the doors she leaves a glittering arc that hangs in the air
-      if (u > .22 && u < .74){ FX.linger(wx, wy); FX.linger(wx, wy); FX.linger(p.x, p.y); }
+      if (u > .22 && u < .74){ FX.linger(wx, wy); if (Math.random() < .5) FX.linger(wx, wy); }
       if (Math.random() < .6) FX.trail(p.x + (Math.random() - .5)*fw*.5*p.s, p.y + fh*.42*p.s);
       requestAnimationFrame(dust);
     })(t0);
@@ -1727,8 +1735,8 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
     setTimeout(()=>{
       cf.classList.remove('flying');
       FX.burst(endX, endY, 18, true);
-      fb.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 300, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
-      fs.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(0)', offset: .45 }, { transform: 'scaleX(1)' }], { duration: 650, easing: 'cubic-bezier(.25,1,.5,1)', fill: 'forwards' });
+      fb.animate([{ transform: 'scaleX(1)', opacity: 1 }, { transform: 'scaleX(.35)', opacity: 0 }], { duration: 520, easing: 'cubic-bezier(.45,0,.55,1)', fill: 'forwards' });
+      fs.animate([{ transform: 'scaleX(.35)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 }], { duration: 620, delay: 140, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' });
     }, DUR);
     // 3. the wand charges up with light
     setTimeout(()=>{
@@ -2004,13 +2012,15 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
     if (d.message) t += ' ' + d.message;
     return t;
   }
+  const WA_NUMBER = '573116450428';
+  const WA_URL = d => 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(waText(d));
   function showDone(d, saved, celebrate){
     form.hidden = true; done.hidden = false;
     $('#rs-done-title').textContent = d.attending ? '¡Te espero!' : 'Te voy a extrañar';
     $('#rs-done-text').textContent = saved
       ? (d.attending ? 'Gracias, ' + d.name + '. Tu confirmación quedó registrada. Si quieres, avísame también por WhatsApp.' : 'Gracias por avisarme, ' + d.name + '. Tu respuesta quedó registrada.')
-      : 'Gracias, ' + d.name + '. Para que tu respuesta me llegue, envíala por WhatsApp con el botón de abajo; el mensaje ya está escrito.';
-    $('#rs-wa').href = 'https://wa.me/?text=' + encodeURIComponent(waText(d));
+      : 'Gracias, ' + d.name + '. Se abrió WhatsApp con tu mensaje listo: solo toca enviar. Si no se abrió, usa el botón de abajo.';
+    $('#rs-wa').href = WA_URL(d);
     if (celebrate && d.attending){ const r = done.getBoundingClientRect(); FX.burst(r.left + r.width/2, r.top + 30, 80); }
   }
   form.addEventListener('submit', async e=>{
@@ -2025,6 +2035,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
     }
     btn.disabled = false; btn.textContent = 'Enviar confirmación';
     showDone(d, saved, true);
+    try{ window.open(WA_URL(d), '_blank', 'noopener'); }catch(_){}
   });
   $('#rs-edit').addEventListener('click', ()=>{ done.hidden = true; form.hidden = false; $('#rs-name').focus(); });
 
