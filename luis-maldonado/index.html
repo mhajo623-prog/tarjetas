@@ -1407,29 +1407,22 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
             <label class="choice"><input type="radio" name="att" id="rs-no" value="no"><span>No podré asistir</span></label>
           </div>
         </fieldset>
-        <div class="row2">
-          <div class="field">
+        <div class="field">
             <label for="rs-guests">Número de personas</label>
             <select id="rs-guests" name="guests">
               <option value="1">1 persona</option>
               <option value="2" selected>2 personas</option>
               <option value="3">3 personas</option>
               <option value="4">4 personas</option>
+              <option value="5">5 personas</option>
+              <option value="6">6 personas</option>
+              <option value="7">7 personas</option>
+              <option value="8">8 personas</option>
+              <option value="9">9 personas</option>
+              <option value="10">10 personas</option>
             </select>
             <span class="bar"></span>
           </div>
-          <div class="field">
-            <label for="rs-diet">Restricción alimentaria</label>
-            <select id="rs-diet" name="diet">
-              <option value="Ninguna">Ninguna</option>
-              <option value="Vegetariana">Vegetariana</option>
-              <option value="Vegana">Vegana</option>
-              <option value="Sin gluten">Sin gluten</option>
-              <option value="Alergia (ver mensaje)">Alergia (cuéntame abajo)</option>
-            </select>
-            <span class="bar"></span>
-          </div>
-        </div>
         <div class="field">
           <label for="rs-song">Una canción que no puede faltar</label>
           <input id="rs-song" name="song" type="text" placeholder="Opcional">
@@ -1463,7 +1456,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
       <div class="totals" id="owner-totals"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Invitado</th><th>Asistencia</th><th>Personas</th><th>Alimentación</th><th>Canción</th><th>Mensaje</th></tr></thead>
+          <thead><tr><th>Invitado</th><th>Asistencia</th><th>Personas</th><th>Canción</th><th>Mensaje</th></tr></thead>
           <tbody id="owner-rows"></tbody>
         </table>
       </div>
@@ -1991,7 +1984,6 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
       name: $('#rs-name').value.trim().slice(0,120),
       attending: att ? att.value === 'si' : null,
       guests: att && att.value === 'si' ? Number($('#rs-guests').value) : 0,
-      diet: $('#rs-diet').value,
       song: $('#rs-song').value.trim().slice(0,160),
       message: $('#rs-msg').value.trim().slice(0,1000)
     };
@@ -2001,13 +1993,11 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
     if (d.attending === true) $('#rs-yes').checked = true;
     if (d.attending === false) $('#rs-no').checked = true;
     if (d.guests) $('#rs-guests').value = String(d.guests);
-    if (d.diet) $('#rs-diet').value = d.diet;
     $('#rs-song').value = d.song || ''; $('#rs-msg').value = d.message || '';
   }
   function waText(d){
     let t = 'Hola Mharia Josse, soy ' + d.name + '. ';
     t += d.attending ? ('Confirmo mi asistencia a tus quince años el 5 de diciembre (' + d.guests + (d.guests === 1 ? ' persona' : ' personas') + ').') : 'Lamentablemente no podré asistir a tus quince años.';
-    if (d.attending && d.diet !== 'Ninguna') t += ' Alimentación: ' + d.diet + '.';
     if (d.song) t += ' Canción: ' + d.song + '.';
     if (d.message) t += ' ' + d.message;
     return t;
@@ -2053,7 +2043,7 @@ footer{padding-block:34px calc(96px + env(safe-area-inset-bottom,0px));padding-l
       const cell = t => { const td = document.createElement('td'); td.textContent = t || '—'; tr.append(td); return td; };
       cell(r.name);
       const c = cell(''); c.textContent = ''; const chip = document.createElement('span'); chip.className = 'chip ' + (r.attending ? 'yes' : 'no'); chip.textContent = r.attending ? 'Asistirá' : 'No asistirá'; c.append(chip);
-      cell(r.attending ? String(r.guests) : '0'); cell(r.attending ? r.diet : ''); cell(r.song); cell(r.message);
+      cell(r.attending ? String(r.guests) : '0'); cell(r.song); cell(r.message);
       rows.append(tr);
     });
   }
